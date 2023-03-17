@@ -13,7 +13,7 @@ v3.1
 import xlwt
 import xlrd
 import pandas as pd
-from datetime import datetime 
+
 
 def read_ticket():
     """    

@@ -78,7 +78,8 @@ def add_deal(add_transaction):
             if deal.numbers == 0 : 
                 deals_close.append(deal)
                 del deals_open[i]
-            return;
+            return
         #действия с i
         #действия val
     deals_open.append(add_transaction)
+    return
