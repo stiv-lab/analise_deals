@@ -10,7 +10,7 @@ v3.1
     156 строка ( if deal.bs==-1 : ) поменял на -1, так как длинная сделка дебетует счет
 """
 
-import xlwt
+
 import xlrd
 import pandas as pd
 
@@ -100,13 +100,33 @@ def check_PL(deal):
             price_close_point = deal.amount_dt_point/deal.number_dt           
     return 
 
+# функция проверяет на корректность данных в df deals
+def check_close_deals(deals):
+    zero_value_df = deals.loc[(deals['number_cr'] == 0) | (deals['number_dt'] == 0)]
+    num_zero_value = len(zero_value_df)
+    if num_zero_value > 0:
+        print(f"Error: There are {num_zero_value} rows with zero value in 'number_dt' and 'number_cr' columns")
+        return 1
+    return 0
 
+# запись df deals в xls
+def write_deal_close(deals):
+
+    if check_close_deals(deals):
+        print("Error: при анализе df deals обнаружены ошибки, запись файла не возможно")
+        return 1
+    
+    work_sheet = 'Deals close'
+    file_name = "Deals_close v1.1.xls"
+        
+    deals.to_exel(file_name, sheet_name = work_sheet, index=False)
+    
+"""   
 def write_deals_close(deals):
 
     ticket_df = read_ticket()
 
-    wb = xlwt.Workbook()
-    ws = wb.add_sheet('Deals close') 
+    ws = 'Deals close'
 
     date_format = xlwt.XFStyle()
     date_format.num_format_str = 'dd/mm/yyyy'
@@ -261,6 +281,7 @@ def write_deals_close(deals):
         
     
     wb.save('Deals_close v3_1.xls')
+"""
 
 def print_deals_close(deals):
     print ("кол-во элементов в deals_close: ",len(deals))

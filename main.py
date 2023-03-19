@@ -11,7 +11,7 @@ v3
 import argparse
 import os
 import sys
-import xlrd
+import pandas as pd
 
 import wdc
 import mod_deals
@@ -70,6 +70,26 @@ def get_file_path():
     
 # основная фукнция 
 def main():
+    os.environ['DEFAULT_CSV_PATH'] = "rep_deals/DealOwnsReport 01-02 23.xls"
+    SKIP_ROWS = 3
+    
+    file_path = get_file_path()
+    
+    if not file_path: 
+        print(f"Error: файл {file_path} не найдет")
+        sys.exit(1)
+
+    dealownreport_df = pd.read_excel(file_path, skiprows = SKIP_ROWS)        
+    
+    for i, row in dealownreport_df():
+        mod_deals.add_deal(deal_transaction(row))
+
+    wdc.write_deals_close(deals_close)
+    
+    print_deals_open(deals_open)
+
+""""
+def main():
     
     os.environ['DEFAULT_CSV_PATH'] = "rep_deals/DealOwnsReport 01-02 23.xls"
     
@@ -92,6 +112,7 @@ def main():
     print_deals_open(deals_open)
     
     print (f.sheet_names())
+"""
     
 if __name__=='__main__':
     main()
