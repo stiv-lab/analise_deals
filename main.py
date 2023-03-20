@@ -81,7 +81,7 @@ def main():
 
     dealownreport_df = pd.read_excel(file_path, skiprows = SKIP_ROWS)        
     
-    for i, row in dealownreport_df():
+    for i, row in dealownreport_df.iterrows():
         mod_deals.add_deal(deal_transaction(row))
 
     wdc.write_deals_close(deals_close)
