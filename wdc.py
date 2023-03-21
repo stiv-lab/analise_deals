@@ -13,6 +13,7 @@ v3.1
 
 import xlrd
 import pandas as pd
+import globals
 
 
 def read_ticket():
@@ -110,7 +111,9 @@ def check_close_deals(deals):
     return 0
 
 # запись df deals в xls
-def write_deal_close(deals):
+def write_deals_close(deal_manager):
+
+    deals = deal_manager.deals_close
 
     if check_close_deals(deals):
         print("Error: при анализе df deals обнаружены ошибки, запись файла не возможно")
@@ -119,7 +122,7 @@ def write_deal_close(deals):
     work_sheet = 'Deals close'
     file_name = "Deals_close v1.1.xls"
         
-    deals.to_exel(file_name, sheet_name = work_sheet, index=False)
+    deals.to_excel(file_name, sheet_name=work_sheet, index=False)
     
 """   
 def write_deals_close(deals):

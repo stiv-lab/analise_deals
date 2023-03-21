@@ -14,10 +14,8 @@ import sys
 import pandas as pd
 
 import wdc
-import mod_deals
-from mod_deals import deal_transaction
-from mod_deals import deals_close
-from mod_deals import deals_open
+from mod_deals import DealManager
+
 
 def print_row(row):
     for i, c_el in enumerate(row):
@@ -70,6 +68,7 @@ def get_file_path():
     
 # основная фукнция 
 def main():
+    
     os.environ['DEFAULT_CSV_PATH'] = "rep_deals/DealOwnsReport 01-02 23.xls"
     SKIP_ROWS = 3
     
@@ -81,38 +80,14 @@ def main():
 
     dealownreport_df = pd.read_excel(file_path, skiprows = SKIP_ROWS)        
     
+    deal_manager = DealManager()
+
     for i, row in dealownreport_df.iterrows():
-        mod_deals.add_deal(deal_transaction(row))
+        deal_manager.add_deal(deal_manager.deal_transaction(row))
 
-    wdc.write_deals_close(deals_close)
+    wdc.write_deals_close(deal_manager)
     
-    print_deals_open(deals_open)
-
-""""
-def main():
-    
-    os.environ['DEFAULT_CSV_PATH'] = "rep_deals/DealOwnsReport 01-02 23.xls"
-    
-    file_path = get_file_path()
-    
-    if not file_path: sys.exit(1)
-           
-    #for i in 7
-    f=xlrd.open_workbook(file_path)
-    listDeal = f.sheet_by_index(0)
-        
-    # читаем файл построчно, каждая строка инициирует класс с данными транзакции
-    # для каждого определенного экземпляра класса вызываем функцию расчета сделок
-    for rownum in range(4,listDeal.nrows):
-        mod_deals.add_deal(deal_transaction(listDeal.row_values(rownum)))
-    
-    
-    wdc.write_deals_close(deals_close)
-    
-    print_deals_open(deals_open)
-    
-    print (f.sheet_names())
-"""
+    print_deals_open(deal_manager.deals_open)
     
 if __name__=='__main__':
     main()
