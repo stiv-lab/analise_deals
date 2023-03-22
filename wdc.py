@@ -13,7 +13,6 @@ v3.1
 
 import xlrd
 import pandas as pd
-import globals
 
 
 def read_ticket():
@@ -21,10 +20,11 @@ def read_ticket():
         читаем файл с котировками в 
     """
     tmp_df = pd.read_excel("tickets\\RIH2 D.xls")
-    #tmp_df = pd.read_excel("tickets\\RIH2 D.xls", index_col = '<DATE>')
-#    print(tmp_df)
-    #print(tmp_df[0][0])
+    # tmp_df = pd.read_excel("tickets\\RIH2 D.xls", index_col = '<DATE>')
+    # print(tmp_df)
+    # print(tmp_df[0][0])
     return tmp_df
+
 
 def open_date_price(date, ticket_df):
     """
@@ -37,78 +37,83 @@ def open_date_price(date, ticket_df):
     #print(xlrd.xldate_as_datetime(date, 0))
     date = xlrd.xldate_as_datetime(date, 0).date()
     #print(date, type(date))
-    
-    #print(ticket_df)
-    #print(date)
-    
-    #print(int(date))
+
+    # print(ticket_df)
+    # print(date)
+
+    # print(int(date))
     #print (datetime.fromtimestamp(int(date)))
     #print(ticket_df[ticket_df['<DATE>'] == int(date)])
 
     for i, row in ticket_df.iterrows():
         row_date = row['<DATE>'].date()
 
-        if row_date == date :
+        if row_date == date:
             #print(i, row['<DATE>'], row_date, row['<OPEN>'])
             pass
             return row['<OPEN>']
-            
+
     pass
     return 0
 
-def compare_openday_opendeal(open_day,open_deal,bs):
+
+def compare_openday_opendeal(open_day, open_deal, bs):
     """
     bs = 1 short
     bs = -1 long
-    
+
     если направление сделки совпадает с направлением дневной свечи то 1
     если не совпадает, то -1
     """
-    if bs == -1 :# long
-        if open_day > open_deal :
+    if bs == -1:  # long
+        if open_day > open_deal:
             return -1
-        if open_day < open_deal :
+        if open_day < open_deal:
             return 1
-    if bs == 1 :# short
-        if open_day > open_deal :
+    if bs == 1:  # short
+        if open_day > open_deal:
             return 1
-        if open_day < open_deal :
+        if open_day < open_deal:
             return -1
     return 0
 
+
 def check_PL(deal):
-    if deal.bs==-1 : 
-        if deal.number_dt == 0 : 
+    if deal.bs == -1:
+        if deal.number_dt == 0:
             price_open = 'dt = 0'
-        else : 
+        else:
             price_open = deal.amount_dt/deal.number_dt
             price_open_point = deal.amount_dt_point/deal.number_dt
-        if deal.number_cr == 0 : 
+        if deal.number_cr == 0:
             price_close = 'cr = 0'
-        else : 
-            price_close = deal.amount_cr/deal.number_cr           
-            price_close_point = deal.amount_cr_point/deal.number_cr           
-    else : 
-        if deal.number_cr == 0 : 
+        else:
+            price_close = deal.amount_cr/deal.number_cr
+            price_close_point = deal.amount_cr_point/deal.number_cr
+    else:
+        if deal.number_cr == 0:
             price_open = 'cr = 0'
-        else : 
+        else:
             price_open = deal.amount_cr/deal.number_cr
             price_open_point = deal.amount_cr_point/deal.number_cr
-        if deal.number_dt == 0 : 
+        if deal.number_dt == 0:
             price_close = 'dt = 0'
-        else : 
+        else:
             price_close = deal.amount_dt/deal.number_dt
-            price_close_point = deal.amount_dt_point/deal.number_dt           
-    return 
+            price_close_point = deal.amount_dt_point/deal.number_dt
+    return
+
 
 # функция проверяет на корректность данных в df deals
 def check_close_deals(deals):
-    zero_value_df = deals.loc[(deals['number_cr'] == 0) | (deals['number_dt'] == 0)]
+    zero_value_df = deals.loc[(deals['qty_cr'] == 0) | (deals['qty_dt'] == 0)]
     num_zero_value = len(zero_value_df)
     if num_zero_value > 0:
-        print(f"Error: There are {num_zero_value} rows with zero value in 'number_dt' and 'number_cr' columns")
+        print(
+            f"Error: There are {num_zero_value} rows with zero value in 'qty_dt' and 'qty_cr' columns")
         return 1
     return 0
+
 
 # запись df deals в xls
 def write_deals_close(deal_manager):
@@ -118,12 +123,13 @@ def write_deals_close(deal_manager):
     if check_close_deals(deals):
         print("Error: при анализе df deals обнаружены ошибки, запись файла не возможно")
         return 1
-    
+
     work_sheet = 'Deals close'
     file_name = "Deals_close v1.1.xls"
-        
+
     deals.to_excel(file_name, sheet_name=work_sheet, index=False)
-    
+
+
 """   
 def write_deals_close(deals):
 
@@ -139,7 +145,7 @@ def write_deals_close(deals):
 #   num_format = xlwt.XFStyle()
 #    num_format.
 #    num_format('# ##0.00')
-                                 
+
     ws.write(0, 0, 'N')
     j=1
     ws.write(0, j, 'Date')
@@ -286,9 +292,11 @@ def write_deals_close(deals):
     wb.save('Deals_close v3_1.xls')
 """
 
+
 def print_deals_close(deals):
-    print ("кол-во элементов в deals_close: ",len(deals))
-    print ("N\tName\tкол-во\tPL\tОбщ позиция\tкомм\tДата расчетная")
+    print("кол-во элементов в deals_close: ", len(deals))
+    print("N\tName\tкол-во\tPL\tОбщ позиция\tкомм\tДата расчетная")
 #    print ("N", '\t',"Name:", '\t', "кол-во", '\t', "PL", '\t', "Общ позиция",'\t',"комм")
-    for i,deal in enumerate(deals):
-        print(i+1,'\t', deal.name,'\t', deal.number_cr,'\t', deal.amount,'\t', deal.amount_cr,'\t', deal.commision,'\t', xlrd.xldate_as_tuple(deal.deal_close,0))
+    for i, deal in enumerate(deals):
+        print(i+1, '\t', deal.name, '\t', deal.number_cr, '\t', deal.amount, '\t',
+              deal.amount_cr, '\t', deal.commision, '\t', xlrd.xldate_as_tuple(deal.deal_close, 0))
