@@ -63,15 +63,18 @@ def test_open_date_price():   # test open_date_price
 def get_file_path():
 
     parser = argparse.ArgumentParser(
-        description='Обработка XLS файла с транзакциями и группировка в сделки')
+        description='Обработка XLS файла с транзакциями и \
+                        группировка в сделки')
     parser.add_argument('file_path', nargs='?',
-                        help='Имя файла для обработки. Если не указано, используется по умолчанию из перепенных среды')
+                        help='Имя файла для обработки. Если не указано, \
+                        используется по умолчанию из перепенных среды')
     args = parser.parse_args()
 
     file_path = args.file_path or os.getenv('DEFAULT_CSV_PATH')
 
     if not file_path:
-        print('Не указан путь к файлу и переменная среды DEFAULT_CSV_FILE не задана')
+        print('Не указан путь к файлу и переменная \
+              среды DEFAULT_CSV_FILE не задана')
         return None
 
     if not os.path.isfile(file_path):
