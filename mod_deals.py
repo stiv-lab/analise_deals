@@ -81,10 +81,10 @@ class DealManager:
         return deal
 
     def transfer_deal(self, deal_index):
-        self.close_deals = pd.concat(
-            [self.close_deals, self.deals_open.loc[deal_index].to_frame().T], ignore_index=True)
-        self.open_deals = self.open_deals.drop(deal_index)
-        self.open_deals = self.open_deals.reset_index(drop=True)
+        self.deals_close = pd.concat(
+            [self.deals_close, self.deals_open.loc[deal_index].to_frame().T], ignore_index=True)
+        self.deals_open = self.deals_open.drop(deal_index)
+        self.deals_open = self.deals_open.reset_index(drop=True)
         return
 
     def split_accumulation_deal(self, deal_index, add_tr):
