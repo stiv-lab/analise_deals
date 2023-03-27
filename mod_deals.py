@@ -60,32 +60,38 @@ class DealManager:
 
         return transaction
 
-    def accumulate_deal(self, deal, add_tr):
-        deal['qty'] += add_tr['qty']
-        deal['amount'] += add_tr['amount']
-        deal['amount_point'] += add_tr['amount_point']
-        deal['commision'] += add_tr['commision']
-        deal['amount_dt'] += add_tr['amount_dt']
-        deal['amount_dt_point'] += add_tr['amount_dt_point']
-        deal['qty_dt'] += add_tr['qty_dt']
-        deal['amount_cr'] += add_tr['amount_cr']
-        deal['amount_cr_point'] += add_tr['amount_cr_point']
-        deal['qty_cr'] += add_tr['qty_cr']
+    def accumulate_deal(self, deal_index, add_tr):
+        deal = self.deals_open.loc[deal_index]
+        self.deals_open.at[deal_index, 'qty'] += add_tr['qty']
+        self.deals_open.at[deal_index, 'amount'] += add_tr['amount']
+        self.deals_open.at[deal_index,
+                           'amount_point'] += add_tr['amount_point']
+        self.deals_open.at[deal_index, 'commision'] += add_tr['commision']
+        self.deals_open.at[deal_index, 'amount_dt'] += add_tr['amount_dt']
+        self.deals_open.at[deal_index,
+                           'amount_dt_point'] += add_tr['amount_dt_point']
+        self.deals_open.at[deal_index, 'qty_dt'] += add_tr['qty_dt']
+        self.deals_open.at[deal_index, 'amount_cr'] += add_tr['amount_cr']
+        self.deals_open.at[deal_index,
+                           'amount_cr_point'] += add_tr['amount_cr_point']
+        self.deals_open.at[deal_index, 'qty_cr'] += add_tr['qty_cr']
         if (add_tr['date_time'] > deal['deal_date_time_close']):
-            deal['deal_date_time_close'] = add_tr['date_time']
+            self.deals_open.at[deal_index,
+                               'deal_date_time_close'] = add_tr['date_time']
         return deal
 
-    def transfer_deal(self, deal):
+    def transfer_deal(self, deal_index):
         self.close_deals = pd.concat(
-            [self.close_deals, deal.to_frame().T], ignore_index=True)
-        self.open_deals = self.open_deals.drop(deal.index)
+            [self.close_deals, self.deals_open.loc[deal_index].to_frame().T], ignore_index=True)
+        self.open_deals = self.open_deals.drop(deal_index)
         self.open_deals = self.open_deals.reset_index(drop=True)
         return
 
-    def split_accumulation_deal(self, deal, add_tr):
+    def split_accumulation_deal(self, deal_index, add_tr):
         # транзакция приходт с qty больше чем в deal и противоположного направления
         # закрываем сделку на сумму отстатка в deal и
         # на остаток открываем новую сделку
+        deal = self.deals_open.loc[deal_index]
         close_tr = add_tr.copy()
         close_tr['qty'] = deal['qty'] * (-1)
         close_tr['amount'] = add_tr['amount'] / \
@@ -107,9 +113,9 @@ class DealManager:
         close_tr['qty_cr'] = add_tr['qty_cr'] / \
             add_tr['qty'] * abs(deal['qty'])
 
-        self.accumulate_deal(self, deal, close_tr)
+        self.accumulate_deal(deal_index, close_tr)
         if deal['qty'] == 0:  # это условие всегда выполняется в данной точке
-            self.transfer_deal(deal)
+            self.transfer_deal(deal_index)
 
         add_tr['qty'] -= close_tr['qty']
         add_tr['amount'] -= close_tr['amount']
@@ -133,24 +139,24 @@ class DealManager:
             return
 
         # дальше, если инструмент найден
-        deal = self.deals_open.loc[self.deals_open['name'] == name].iloc[0]
-        if add_tr['BS'] == deal['BS']:
+        deal_index = self.deals_open.loc[self.deals_open['name']
+                                         == name].index[0]
+        if add_tr['BS'] == self.deals_open.at[deal_index, 'BS']:
             # если направление совпадает, то накопление и к выходу
-            self.accumulate_deal(deal, add_tr)
+            self.accumulate_deal(deal_index, add_tr)
             return
 
-        if abs(add_tr['qty']) <= abs(deal['qty']):
+        if abs(add_tr['qty']) <= abs(self.deals_open.at[deal_index, 'qty']):
             # если меньше или равно, накопить
-            self.accumulate_deal(deal, add_tr)
-            if deal['qty'] == 0:
-                self.transfer_deal(deal)
+            self.accumulate_deal(deal_index, add_tr)
+            if self.deals_open.at[deal_index, 'qty'] == 0:
+                self.transfer_deal(deal_index)
         else:
             # в это точке, в транзакции больше, чем нужно для закрытия сделки
             # делим транзакцию, на закрытие сделки и остаток
             # остаток идет на открытие новой сделки
 
-            add_tr = self.split_accumulation_deal(
-                deal, add_tr)
+            add_tr = self.split_accumulation_deal(deal_index, add_tr)
             self.deals_open = pd.concat(
                 [self.deals_open, add_tr.to_frame().T], ignore_index=True)
 
