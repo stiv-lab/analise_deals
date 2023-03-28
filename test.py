@@ -42,8 +42,6 @@ def test_add_deal(test_case):
     test_data, expected_results = read_test_data_from_xls(
         test_data_file_path, test_case)
 
-    # ...
-
     # Тестирование для текущего сценария
     for i, row in test_data.iterrows():
         transaction = deal_manager.deal_transaction(row[1:22])
@@ -52,14 +50,31 @@ def test_add_deal(test_case):
     # Проверка результатов с ожидаемыми значениями
     for col, expected_result in expected_results.iteritems():
         if not pd.isna(expected_result):
+            if col.endswith('_len'):
+                # Убираем '_len' из имени столбца, чтобы получить имя DataFrame (open или close)
+                data_frame_name = col[:-4]
+                result = len(getattr(deal_manager, f"deals_{data_frame_name}"))
+            else:
+                # Разделяем имя столбца на имя DataFrame и имя столбца
+                data_frame_name, column_name = col.split('_', 1)
+                result = getattr(deal_manager, f"deals_{data_frame_name}")[
+                    column_name].sum()
+
+            assert result == expected_result, f"Ошибка сценария {test_case} в прое {col}: ожидалось {expected_result}, получено {result}"
+
+    """
+    # Проверка результатов с ожидаемыми значениями
+    for col, expected_result in expected_results.iteritems():
+        if not pd.isna(expected_result):
             result = getattr(deal_manager, col)
             assert result == expected_result, f"Ошибка сценария {test_case} в прое {col}: ожидалось {expected_result}, получено {result}"
+    """
 
     print(f"Test case {test_case}: ок")
 
 
 def main():
-    test_add_deal('open_new_long')
+    test_add_deal('split_accumulation_short_2_3')
 
 
 if __name__ == '__main__':

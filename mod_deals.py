@@ -114,7 +114,8 @@ class DealManager:
             add_tr['qty'] * abs(deal['qty'])
 
         self.accumulate_deal(deal_index, close_tr)
-        if deal['qty'] == 0:  # это условие всегда выполняется в данной точке
+        # это условие всегда выполняется в данной точке
+        if self.deals_open.loc[deal_index]['qty'] == 0:
             self.transfer_deal(deal_index)
 
         add_tr['qty'] -= close_tr['qty']
