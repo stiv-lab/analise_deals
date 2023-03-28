@@ -12,6 +12,7 @@ v3.1
 
 
 import xlrd
+from openpyxl import utils
 import pandas as pd
 
 
@@ -116,6 +117,30 @@ def check_close_deals(deals):
 
 
 # запись df deals в xls
+
+
+def write_deals_close(deal_manager, file_name='deals_close.xlsx'):
+    # Создаем DataFrame для записи данных
+    deals_close_df = pd.DataFrame(deal_manager.deals_close)
+
+    # Группировка инструментов по их базовому инструменту и типу (фьючерс или опцион)
+    grouped_deals = deals_close_df.groupby(
+        by=[deals_close_df['name'].str[:2], deals_close_df['name'].str.len()])
+
+    try:
+        # Записываем данные в файл Excel
+        with pd.ExcelWriter(file_name, engine='openpyxl') as writer:
+            for (base_instrument, name_length), group in grouped_deals:
+                sheet_name = f"{base_instrument}_{'Futures' if name_length == 4 else 'Options'}"
+                try:
+                    group.to_excel(writer, sheet_name=sheet_name, index=False)
+                except utils.exceptions.IllegalCharacterError as e:
+                    print(f"Ошибка записи данных на лист {sheet_name}: {e}")
+    except Exception as e:
+        print(f"Ошибка записи файла {file_name}: {e}")
+
+
+""""
 def write_deals_close(deal_manager):
 
     deals = deal_manager.deals_close
@@ -128,7 +153,7 @@ def write_deals_close(deal_manager):
     file_name = "Deals_close v1.1.xls"
 
     deals.to_excel(file_name, sheet_name=work_sheet, index=False)
-
+"""
 
 """   
 def write_deals_close(deals):
@@ -293,10 +318,10 @@ def write_deals_close(deals):
 """
 
 
-def print_deals_close(deals):
-    print("кол-во элементов в deals_close: ", len(deals))
+def print_deals_close(deals_open):
+    print("кол-во элементов в deals_close: ", len(deals_open))
     print("N\tName\tкол-во\tPL\tОбщ позиция\tкомм\tДата расчетная")
 #    print ("N", '\t',"Name:", '\t', "кол-во", '\t', "PL", '\t', "Общ позиция",'\t',"комм")
-    for i, deal in enumerate(deals):
+    for i, deal in deals_open.iterrows():
         print(i+1, '\t', deal.name, '\t', deal.number_cr, '\t', deal.amount, '\t',
               deal.amount_cr, '\t', deal.commision, '\t', xlrd.xldate_as_tuple(deal.deal_close, 0))
