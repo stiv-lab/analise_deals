@@ -22,12 +22,12 @@ def print_row(row):
         print(i, ": ", c_el)
 
 
-def print_deals_open(deals):
-    print("кол-во элементов в deals_open: ", len(deals))
-    print("N", '\t', "Name", '\t', "qty", '\t', "open pos", '\t', "comm")
-    for i, deal in enumerate(deals):
-        print(i+1, '\t', deal['name'], '\t', deal['qty'],
-              '\t', deal['amount_point'], '\t', deal.commision)
+def print_deals_open(deals_open):
+    print("кол-во элементов в deals_open: ", len(deals_open))
+    print("N\tName\tqty\topen pos\tcomm")
+    for i, deal in deals_open.iterrows():
+        print(i + 1, '\t', deal['name'], '\t', deal['qty'],
+              '\t', deal['amount_point'], '\t', deal['commision'])
 
 
 def test_open_date_price():   # test open_date_price
@@ -103,7 +103,7 @@ def main():
     for i, row in dealownreport_df.iterrows():
         deal_manager.add_deal(deal_manager.deal_transaction(row))
 
-    wdc.write_deals_close(deal_manager)
+    deal_manager.write_deals_close()
 
     print_deals_open(deal_manager.deals_open)
 

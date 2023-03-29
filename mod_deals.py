@@ -5,6 +5,7 @@ Created on Fri Mar 17 10:48:45 2023
 @author: Origo
 """
 import pandas as pd
+from openpyxl import utils
 
 
 class DealManager:
@@ -163,31 +164,38 @@ class DealManager:
 
         return
 
+    # функция проверяет на корректность данных в deals_close
+    def check_close_deals(self):
+        zero_value_df = self.deals_close.loc[(
+            self.deals_close['qty_cr'] == 0) | (self.deals_close['qty_dt'] == 0)]
+        num_zero_value = len(zero_value_df)
+        if num_zero_value > 0:
+            print(
+                f"Error: There are {num_zero_value} rows with zero value in 'qty_dt' and 'qty_cr' columns")
+            return 1
+        return 0
 
-"""
-    def add_deal(self, add_transaction):
-        for i, deal in self.deals_open.iterrows():
-            if add_transaction['name'] == deal['name']:
-                deal['qty'] += add_transaction['qty']
-                deal['amount'] += add_transaction['amount']
-                deal['amount_point'] += add_transaction['amount_point']
-                deal['commision'] += add_transaction['commision']
-                if (add_transaction['date_time'] > deal['deal_date_time_close']):
-                    deal['deal_date_time_close'] = add_transaction['date_time']
-                if add_transaction['BS'] == 'Buy':
-                    deal['amount_dt'] += add_transaction['amount_dt']
-                    deal['amount_dt_point'] += add_transaction['amount_dt_point']
-                    deal['qty_dt'] += add_transaction['qty_dt']
-                else:
-                    deal['amount_cr'] += add_transaction['amount_cr']
-                    deal['amount_cr_point'] += add_transaction['amount_cr_point']
-                    deal['qty_cr'] += add_transaction['qty_cr']
-
-            if deal['qty'] == 0:
-                self.deals_close = pd.concat([self.deals_close, deal.to_frame().T], ignore_index=True)
-                self.deals_open = self.deals_open.drop(i)
+    # запись deals_close в файл
+    def write_deals_close(self, file_name='deals_close.xlsx'):
+        # проверка на корректность данных перед записью в файл
+        if self.check_close_deals():
+            print("Error: ошибка данных в deals_close, см сообщение ранее")
             return
 
-        self.deals_open = pd.concat([self.deals_open, add_transaction.to_frame().T], ignore_index=True)
-        return
-"""
+        # Группировка инструментов по их базовому инструменту и типу (фьючерс или опцион)
+        grouped_deals = self.deals_close.groupby(
+            by=[self.deals_close['name'].str[:2], self.deals_close['name'].str.len()])
+
+        try:
+            # Записываем данные в файл Excel
+            with pd.ExcelWriter(file_name, engine='openpyxl') as writer:
+                for (base_instrument, name_length), group in grouped_deals:
+                    sheet_name = f"{base_instrument}_{'Futures' if name_length == 4 else 'Options'}"
+                    try:
+                        group.to_excel(
+                            writer, sheet_name=sheet_name, index=False)
+                    except utils.exceptions.IllegalCharacterError as e:
+                        print(
+                            f"Ошибка записи данных на лист {sheet_name}: {e}")
+        except Exception as e:
+            print(f"Ошибка записи файла {file_name}: {e}")
